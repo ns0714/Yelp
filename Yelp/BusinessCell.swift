@@ -29,7 +29,6 @@ class BusinessCell: UITableViewCell {
             distanceLabel.text = business.distance
             tagsLabel.text = business.categories
             addressLabel.text = business.address
-            
         }
     }
     

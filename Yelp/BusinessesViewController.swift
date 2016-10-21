@@ -8,9 +8,11 @@
 
 import UIKit
 
-class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FilterViewControllerDelegate {
+class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate,FilterViewControllerDelegate {
     
     var businesses: [Business]!
+    var isMoreDataLoading = false
+    var offset: Int = 0
     
     @IBOutlet weak var tableView: UITableView!
     
@@ -19,10 +21,10 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.estimatedRowHeight = 300
+        tableView.estimatedRowHeight = 120
         tableView.rowHeight = UITableViewAutomaticDimension
         
-        Business.searchWithTerm(term: "Thai", completion: { (businesses: [Business]?, error: Error?) -> Void in
+        Business.searchWithTerm(term: "Thai", offset: 0, completion: { (businesses: [Business]?, error: Error?) -> Void in
             
             self.businesses = businesses
             self.tableView.reloadData()
@@ -32,27 +34,53 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
                     print(business.address!)
                 }
             }
-            
-            }
-        )
-        
+        })
     }
-        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
             if businesses != nil {
                 return businesses.count
             }else {
                 return 0
             }
         }
-        
-
-        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
             let cell = tableView.dequeueReusableCell(withIdentifier: "BusinessCell", for: indexPath) as! BusinessCell
             
             cell.business = businesses[indexPath.row]
             return cell
         }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        print("^^^^^^^^^^^^^^", isMoreDataLoading)
+        if (!isMoreDataLoading) {
+            let scrollViewContentHeight = tableView.contentSize.height
+            let scrollOffsetThreshold = scrollViewContentHeight - tableView.bounds.size.height
+            
+            // When the user has scrolled past the threshold, start requesting
+            if(scrollView.contentOffset.y > scrollOffsetThreshold && tableView.isDragging) {
+                isMoreDataLoading = true
+                offset = offset + 20
+                loadMoreData(offset: offset)
+            }
+        }
+    }
+    
+    func loadMoreData(offset:Int) {
         
+        Business.searchWithTerm(term: "Thai", offset: offset, completion: { (businesses: [Business]?, error: Error?) -> Void in
+            self.isMoreDataLoading = false
+            self.businesses = businesses
+            self.tableView.reloadData()
+            if let businesses = businesses {
+                for business in businesses {
+                    print(business.name!)
+                    print(business.address!)
+                }
+            }
+        })
+    }
         /* Example of Yelp search with more search options specified
          Business.searchWithTerm("Restaurants", sort: .Distance, categories: ["asianfusion", "burgers"], deals: true) { (businesses: [Business]!, error: NSError!) -> Void in
          self.businesses = businesses
@@ -80,7 +108,7 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     func filterViewController(filterViewController: FiltersViewController, didUpdateFilter filters: [String : AnyObject]) {
         
         let categories = filters["categories"] as? [String]
-        Business.searchWithTerm(term: "Restaurants", sort: nil, categories: categories, deals: nil) { (businesses: [Business]?, error: Error?) in
+        Business.searchWithTerm(term: "Restaurants", offset: 0, sort: nil, categories: categories, deals: nil) { (businesses: [Business]?, error: Error?) in
             print("$$$$$$$$$$$$$$", businesses?.count)
             self.businesses = businesses
             self.tableView.reloadData()
