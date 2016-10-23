@@ -19,7 +19,11 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
     weak var delegate: FilterViewControllerDelegate?
     
     var categories = [[String:String]]()
+    var categoryNames = [String]()
     var switchStates = [Int:Bool]()
+    var switchSectionRow = Dictionary<Int, Bool>()
+    var switchStatesDictionary = [Int:Dictionary<Int, Bool>]()
+    
     @IBAction func onCancel(_ sender: AnyObject) {
         dismiss(animated: true, completion: nil)
     }
@@ -32,10 +36,12 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
         var selectedCategories = [String]()
         for(row, isSelected) in switchStates {
             if isSelected {
+                 print("$$$$$$$$$$$$$$$$$", categories[row]["code"]! )
                 selectedCategories.append(categories[row]["code"]!)
             }
         }
         print("SHHDFGHJKLJHKGFDGFGHJ", selectedCategories.count)
+       
         if selectedCategories.count > 0 {
             filters["categories"] = selectedCategories as AnyObject?
         }
@@ -46,6 +52,7 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
     override func viewDidLoad() {
         super.viewDidLoad()
         categories = yelpCategories()
+        getCategoryNames()
         tableView.delegate = self
         tableView.dataSource = self
     }
@@ -55,23 +62,72 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
         // Dispose of any resources that can be recreated.
     }
     
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 4
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categories.count
+        return getSection(section: section).noOfRows
+    }
+    
+    func getSection(section: Int) -> (noOfRows:Int,sectionLabel: String, rowType: String, rows: [String]) {
+        var sectionData:(Int,String,String, [String])?
+        switch section {
+        case 0:
+            sectionData = (1,"","Switch",["Offering a Deal"])
+        case 1:
+            sectionData = (4,"Distance","Dropdown",["5 miles", "10 miles","25 miles","50 miles"])
+        case 2:
+            sectionData = (3,"Sort By","Dropdown",["Best Match", "Distance", "Highest Rated"])
+        case 3:
+            sectionData = (categoryNames.count,"Category","Dropdown",categoryNames)
+        default:
+            break
+        }
+        return sectionData!
+    }
+    
+    public func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        if(section == 0) {
+            return "Deal"
+        }
+        if(section == 1) {
+            return "Distance"
+        }
+        if(section == 2) {
+            return "Best Match"
+        }
+        if(section == 3) {
+            return "Category"
+        }
+
+        return nil
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
-        cell.categoryLabel.text = categories[indexPath.row]["name"]
-        cell.delegate = self
+        //let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
+        //cell.categoryLabel.text = categories[indexPath.row]["name"]
+       // cell.delegate = self
         
+       // cell.onSwitch.isOn = switchStates[indexPath.row] ?? false
+       // return cell;
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
+        //print("@@@@@@", getSection(section: indexPath.section).rows[indexPath.row])
+        cell.categoryLabel?.text = getSection(section: indexPath.section).rows[indexPath.row]
+        cell.delegate = self
         cell.onSwitch.isOn = switchStates[indexPath.row] ?? false
         return cell
+        
     }
     
     func switchCell(switchCell: SwitchCell, didChangeValue name: Bool) {
         let indexPath = tableView.indexPath(for: switchCell)
-        
+        print("INDEXXXXXXXXX PATH", indexPath)
         switchStates[(indexPath?.row)!] = name
+        //switchSectionRow = [indexPath.row:cell.onSwitch.isOn]
+        switchStatesDictionary[(indexPath?.section)!] = switchStates
+        print("&&&&&&&&&&&", switchStatesDictionary.count)
     }
     
     func yelpCategories() -> [[String:String]] {
@@ -246,4 +302,11 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
                       ["name" : "Yugoslav", "code": "yugoslav"]]
     }
     
+    func getCategoryNames() -> [String] {
+        for index in 0...categories.count-1 {
+            categoryNames.append(categories[index]["name"]!)
+            print("@@@@@@@@@@@@",categories[index]["name"])
+        }
+        return categoryNames
+    }
 }

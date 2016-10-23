@@ -8,19 +8,23 @@
 
 import UIKit
 
-class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate,FilterViewControllerDelegate {
+class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UIScrollViewDelegate,FilterViewControllerDelegate {
     
     var businesses: [Business]!
     var isMoreDataLoading = false
     var offset: Int = 0
+    var filteredData: [Business]!
     
     @IBOutlet weak var tableView: UITableView!
+    
+    @IBOutlet weak var searchBar: UISearchBar!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         tableView.delegate = self
         tableView.dataSource = self
+        searchBar.delegate = self
         tableView.estimatedRowHeight = 120
         tableView.rowHeight = UITableViewAutomaticDimension
         
@@ -98,17 +102,26 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     }
     
         // In a storyboard-based application, you will often want to do a little preparation before navigation
-       func prepareForSegue(segue: UIStoryboardSegue!, sender: AnyObject!) {     // Get the new view controller using segue.destinationViewController.
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+     // Get the new view controller using segue.destinationViewController.
      // Pass the selected object to the new view controller.
         let navigationController = segue.destination as! UINavigationController
         let filterViewController = navigationController.topViewController as! FiltersViewController
         filterViewController.delegate = self
      }
     
-    func filterViewController(filterViewController: FiltersViewController, didUpdateFilter filters: [String : AnyObject]) {
-        
-        let categories = filters["categories"] as? [String]
-        Business.searchWithTerm(term: "Restaurants", offset: 0, sort: nil, categories: categories, deals: nil) { (businesses: [Business]?, error: Error?) in
+    func filterViewController(filterViewController: FiltersViewController, didUpdateFilter filters: Dictionary<String,[String : AnyObject]>) {
+        var categories = [String]()
+        //var distance = [String]()
+        for keyFilter in filters {
+            if(keyFilter.key == "Category") {
+                categories = (filters["categories"] as? [String])!
+            }
+            if(keyFilter.key == "Distance") {
+               // distance = filters[0] as? [String]
+            }
+        }
+            Business.searchWithTerm(term: "Restaurants", offset: 0, sort: nil, categories: categories, deals: nil) { (businesses: [Business]?, error: Error?) in
             print("$$$$$$$$$$$$$$", businesses?.count)
             self.businesses = businesses
             self.tableView.reloadData()

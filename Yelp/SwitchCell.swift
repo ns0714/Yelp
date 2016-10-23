@@ -14,8 +14,9 @@ import UIKit
 
 class SwitchCell: UITableViewCell {
 
-    @IBOutlet weak var categoryLabel: UILabel!
+    
     @IBOutlet weak var onSwitch: UISwitch!
+    @IBOutlet weak var categoryLabel: UILabel!
     
     weak var delegate: SwitchCellDelegate?
     
