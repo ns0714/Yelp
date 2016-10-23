@@ -57,7 +57,6 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        print("^^^^^^^^^^^^^^", isMoreDataLoading)
         if (!isMoreDataLoading) {
             let scrollViewContentHeight = tableView.contentSize.height
             let scrollOffsetThreshold = scrollViewContentHeight - tableView.bounds.size.height
@@ -110,18 +109,32 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         filterViewController.delegate = self
      }
     
-    func filterViewController(filterViewController: FiltersViewController, didUpdateFilter filters: Dictionary<String,[String : AnyObject]>) {
+    func filterViewController(filterViewController: FiltersViewController, didUpdateFilter filters: Dictionary<String,[String]>) {
         var categories = [String]()
-        //var distance = [String]()
+        var distance = String()
+        var dist = Int()
+        var sortMode = Int()
+        var deal = Bool()
         for keyFilter in filters {
-            if(keyFilter.key == "Category") {
-                categories = (filters["categories"] as? [String])!
+            if(keyFilter.key == "deals") {
+                if(filters["deals"]?.first! == "true") {
+                    deal = true
+                }
             }
-            if(keyFilter.key == "Distance") {
-               // distance = filters[0] as? [String]
+            if(keyFilter.key == "categories") {
+                categories = filters["categories"]!
+            }
+            if(keyFilter.key == "distance") {
+                distance = (filters["distance"]?.first!)!
+                dist = Int(distance)!
+            }
+            if(keyFilter.key == "sort") {
+                if(filters["sort"]?.first! == "2") {
+                    sortMode = 2
+                }
             }
         }
-            Business.searchWithTerm(term: "Restaurants", offset: 0, sort: nil, categories: categories, deals: nil) { (businesses: [Business]?, error: Error?) in
+        Business.searchWithTerm(term: "Restaurants", offset: 0, radius: dist, sort: sortMode, categories: categories, deals: deal) { (businesses: [Business]?, error: Error?) in
             print("$$$$$$$$$$$$$$", businesses?.count)
             self.businesses = businesses
             self.tableView.reloadData()

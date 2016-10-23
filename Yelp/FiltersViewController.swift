@@ -9,7 +9,7 @@
 import UIKit
 
 @objc protocol FilterViewControllerDelegate {
-@objc optional func filterViewController(filterViewController: FiltersViewController, didUpdateFilter filters: [String: AnyObject])
+@objc optional func filterViewController(filterViewController: FiltersViewController, didUpdateFilter filters: Dictionary<String,[String]>)
 }
 
 class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, SwitchCellDelegate {
@@ -24,6 +24,15 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
     var switchSectionRow = Dictionary<Int, Bool>()
     var switchStatesDictionary = [Int:Dictionary<Int, Bool>]()
     
+    var distanceValues: [[String:String]] = [["dist" : "5 miles", "radius_filter": "8046"],
+                                         ["dist" : "10 miles", "radius_filter": "16093"],
+                                         ["dist" : "15 miles", "radius_filter": "24140"],
+                                         ["dist" : "20 miles", "radius_filter": "32186"]]
+    
+    var sortValues: [[String:String]] = [["sort" : "Best Match", "value": "0"],
+                                         ["sort" : "Distance", "value": "1"],
+                                         ["sort" : "Distance", "value": "2"]]
+                                
     @IBAction func onCancel(_ sender: AnyObject) {
         dismiss(animated: true, completion: nil)
     }
@@ -31,21 +40,41 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
     @IBAction func onSearch(_ sender: AnyObject) {
         dismiss(animated: true, completion: nil)
         
-        var filters = [String: AnyObject]()
-        
+        var filters = Dictionary<String,[String]>()
         var selectedCategories = [String]()
-        for(row, isSelected) in switchStates {
-            if isSelected {
-                 print("$$$$$$$$$$$$$$$$$", categories[row]["code"]! )
-                selectedCategories.append(categories[row]["code"]!)
+        for section in switchStatesDictionary {
+            if(section.key == 0){
+                filters["deals"] = ["true"]
             }
-        }
+            
+            if(section.key == 1) {
+                for(row, isSelected) in switchStates {
+                    if isSelected {
+                        filters["distance"] = [distanceValues[row]["radius_filter"]!]
+                    }
+                }
+            }
+            if(section.key == 2){
+                for(row, isSelected) in switchStates {
+                    if isSelected {
+                        filters["sort"] = [sortValues[row]["sort"]!]
+                    }
+                }
+            }
+            if(section.key == 3) {
+                for(row, isSelected) in switchStates {
+                    if isSelected {
+                        print("$$$$$$$$$$$$$$$$$", categories[row]["code"]! )
+                        selectedCategories.append(categories[row]["code"]!)
+                    }
+                  }
+            }
         print("SHHDFGHJKLJHKGFDGFGHJ", selectedCategories.count)
        
-        if selectedCategories.count > 0 {
-            filters["categories"] = selectedCategories as AnyObject?
+        if (selectedCategories.count) > 0 {
+            filters["categories"] = selectedCategories
         }
-        
+    }
         delegate?.filterViewController?(filterViewController: self, didUpdateFilter: filters)
     }
     
@@ -70,17 +99,17 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
         return getSection(section: section).noOfRows
     }
     
-    func getSection(section: Int) -> (noOfRows:Int,sectionLabel: String, rowType: String, rows: [String]) {
-        var sectionData:(Int,String,String, [String])?
+    func getSection(section: Int) -> (noOfRows:Int,sectionLabel: String, rows: [String]) {
+        var sectionData:(Int,String, [String])?
         switch section {
         case 0:
-            sectionData = (1,"","Switch",["Offering a Deal"])
+            sectionData = (1,"Deal", ["Offering a Deal"])
         case 1:
-            sectionData = (4,"Distance","Dropdown",["5 miles", "10 miles","25 miles","50 miles"])
+            sectionData = (4,"Distance",["5 miles", "10 miles","15 miles","25 miles"])
         case 2:
-            sectionData = (3,"Sort By","Dropdown",["Best Match", "Distance", "Highest Rated"])
+            sectionData = (3,"Sort By",["Best Match", "Distance", "Highest Rated"])
         case 3:
-            sectionData = (categoryNames.count,"Category","Dropdown",categoryNames)
+            sectionData = (categoryNames.count,"Category",categoryNames)
         default:
             break
         }
@@ -88,20 +117,7 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
     
     public func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if(section == 0) {
-            return "Deal"
-        }
-        if(section == 1) {
-            return "Distance"
-        }
-        if(section == 2) {
-            return "Best Match"
-        }
-        if(section == 3) {
-            return "Category"
-        }
-
-        return nil
+        return getSection(section: section).sectionLabel
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -123,11 +139,8 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
     
     func switchCell(switchCell: SwitchCell, didChangeValue name: Bool) {
         let indexPath = tableView.indexPath(for: switchCell)
-        print("INDEXXXXXXXXX PATH", indexPath)
         switchStates[(indexPath?.row)!] = name
-        //switchSectionRow = [indexPath.row:cell.onSwitch.isOn]
         switchStatesDictionary[(indexPath?.section)!] = switchStates
-        print("&&&&&&&&&&&", switchStatesDictionary.count)
     }
     
     func yelpCategories() -> [[String:String]] {
@@ -305,7 +318,6 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
     func getCategoryNames() -> [String] {
         for index in 0...categories.count-1 {
             categoryNames.append(categories[index]["name"]!)
-            print("@@@@@@@@@@@@",categories[index]["name"])
         }
         return categoryNames
     }
