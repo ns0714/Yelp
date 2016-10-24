@@ -10,16 +10,20 @@ import UIKit
 
 class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UIScrollViewDelegate,FilterViewControllerDelegate {
     
+    var searchActive : Bool = false
     var businesses: [Business]!
+    var businessesList: [Business]! = [Business]()
+    var filteredBusinesses: [Business]!
     var isMoreDataLoading = false
     var offset: Int = 0
     var filteredData: [Business]!
+    
     
     var categories = [String]()
     var radius = Int()
     var sortMode = Int()
     var deal = Bool()
-    
+    var restaurantNames: [String]!
     var yelpModel = Yelp()
     
     @IBOutlet weak var tableView: UITableView!
@@ -34,16 +38,19 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         searchBar.delegate = self
         tableView.estimatedRowHeight = 120
         tableView.rowHeight = UITableViewAutomaticDimension
-        
+        restaurantNames = [String]()
+        filteredBusinesses = [Business]()
         Business.searchWithTerm(term: "Restaurants", offset: 0, completion: { (businesses: [Business]?, error: Error?) -> Void in
             
             self.businesses = businesses
             self.tableView.reloadData()
             if let businesses = businesses {
                 for business in businesses {
-                    print(business.name!)
-                    print(business.address!)
+                    self.restaurantNames.append(business.name!)
+                    print("%%",business.name!)
+                    print("%%",business.address!)
                 }
+                self.businessesList = businesses
             }
         })
     }
@@ -86,9 +93,11 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
             self.tableView.reloadData()
             if let businesses = businesses {
                 for business in businesses {
-                    print(business.name!)
-                    print(business.address!)
+                    self.restaurantNames.append(business.name!)
+                    print("%%", business.name!)
+                    print("%%",business.address!)
                 }
+                 self.businessesList = businesses
             }
         }
     }
@@ -138,4 +147,63 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
             self.tableView.reloadData()
         }
     }
+    
+    
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        searchActive = true;
+        businesses = businessesList
+        self.tableView.reloadData()
+    }
+    
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        searchActive = false;
+        businesses = businessesList
+        self.tableView.reloadData()
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchActive = false;
+        businesses = businessesList
+        self.tableView.reloadData()
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchActive = false;
+        businesses = businessesList
+        self.tableView.reloadData()
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        var filteredRestuarantTitles: [String]
+
+        filteredRestuarantTitles = restaurantNames.filter({ (text) -> Bool in
+            let tmp: NSString = text as NSString
+            let range = tmp.range(of: searchText, options: NSString.CompareOptions.caseInsensitive)
+            return range.location != NSNotFound
+        })
+        print("@@@@@@@", filteredRestuarantTitles)
+        
+        for title in filteredRestuarantTitles {
+            for business in businesses! {
+                if(title == business.name!) {
+                    print("TITLE----->", title, "BUSINESS NAME--->", business.name)
+                    filteredBusinesses.append(business)
+                }
+            }
+        }
+        if(filteredBusinesses.count == 0) {
+            searchActive = false;
+            self.businesses = businessesList
+        } else {
+            searchActive = true;
+            self.businesses = filteredBusinesses
+        }
+        filteredBusinesses.removeAll()
+        self.tableView.reloadData()
+    }
+    
+    
+    
+    
+    
 }
