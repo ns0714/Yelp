@@ -15,6 +15,13 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     var offset: Int = 0
     var filteredData: [Business]!
     
+    var categories = [String]()
+    var radius = Int()
+    var sortMode = Int()
+    var deal = Bool()
+    
+    var yelpModel = Yelp()
+    
     @IBOutlet weak var tableView: UITableView!
     
     @IBOutlet weak var searchBar: UISearchBar!
@@ -28,7 +35,7 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         tableView.estimatedRowHeight = 120
         tableView.rowHeight = UITableViewAutomaticDimension
         
-        Business.searchWithTerm(term: "Thai", offset: 0, completion: { (businesses: [Business]?, error: Error?) -> Void in
+        Business.searchWithTerm(term: "Restaurants", offset: 0, completion: { (businesses: [Business]?, error: Error?) -> Void in
             
             self.businesses = businesses
             self.tableView.reloadData()
@@ -71,8 +78,9 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     }
     
     func loadMoreData(offset:Int) {
-        
-        Business.searchWithTerm(term: "Thai", offset: offset, completion: { (businesses: [Business]?, error: Error?) -> Void in
+         print("OFFSET-------->", offset, "RADIUS------->", radius, "categories----->", categories, "SORT BY--->", sortMode)
+        Business.searchWithTerm(term: "Restaurants", offset: offset, radius: radius, sort: sortMode, categories: categories, deals: deal) { (businesses: [Business]?, error: Error?) in
+            
             self.isMoreDataLoading = false
             self.businesses = businesses
             self.tableView.reloadData()
@@ -82,18 +90,8 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
                     print(business.address!)
                 }
             }
-        })
+        }
     }
-        /* Example of Yelp search with more search options specified
-         Business.searchWithTerm("Restaurants", sort: .Distance, categories: ["asianfusion", "burgers"], deals: true) { (businesses: [Business]!, error: NSError!) -> Void in
-         self.businesses = businesses
-         
-         for business in businesses {
-         print(business.name!)
-         print(business.address!)
-         }
-         }
-         */
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -110,31 +108,31 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
      }
     
     func filterViewController(filterViewController: FiltersViewController, didUpdateFilter filters: Dictionary<String,[String]>) {
-        var categories = [String]()
-        var distance = String()
-        var dist = Int()
-        var sortMode = Int()
-        var deal = Bool()
+    
         for keyFilter in filters {
             if(keyFilter.key == "deals") {
                 if(filters["deals"]?.first! == "true") {
+                    //deal = true
+                    self.yelpModel.deals = true
                     deal = true
                 }
             }
             if(keyFilter.key == "categories") {
-                categories = filters["categories"]!
+                 self.yelpModel.categories = filters["categories"]!
+                 categories = filters["categories"]!
             }
             if(keyFilter.key == "distance") {
-                distance = (filters["distance"]?.first!)!
-                dist = Int(distance)!
+                 self.yelpModel.radius = Int((filters["distance"]?.first)!)!
+                 radius = Int((filters["distance"]?.first)!)!
+                
             }
             if(keyFilter.key == "sort") {
-                if(filters["sort"]?.first! == "2") {
-                    sortMode = 2
-                }
+                print("-->",(filters["sort"]),"<--")
+                 self.yelpModel.sort = Int((filters["sort"]?.first)!)!
+                 sortMode = Int((filters["sort"]?.first)!)!
             }
         }
-        Business.searchWithTerm(term: "Restaurants", offset: 0, radius: dist, sort: sortMode, categories: categories, deals: deal) { (businesses: [Business]?, error: Error?) in
+        Business.searchWithTerm(term: "Restaurants", offset: 0, radius: radius, sort: sortMode, categories: categories, deals: deal) { (businesses: [Business]?, error: Error?) in
             print("$$$$$$$$$$$$$$", businesses?.count)
             self.businesses = businesses
             self.tableView.reloadData()
