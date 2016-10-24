@@ -26,8 +26,8 @@ Required
 
 Gif Image
 
-![Alt Text]()
-![Alt Text]()
+![Alt Text](yelp.gif)
+
 
 ### Basic Yelp client
 
