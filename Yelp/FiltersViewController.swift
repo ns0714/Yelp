@@ -92,20 +92,20 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
     
     func getSection(section: Int) -> (noOfRows:Int,sectionLabel: String, rows: [String]) {
-        var sectionData:(Int,String, [String])?
+        var sectionInfo:(Int, String, [String])?
         switch section {
         case 0:
-            sectionData = (1,"Deal", ["Offering a Deal"])
+            sectionInfo = (1,"Deal", ["Offering a Deal"])
         case 1:
-            sectionData = (4,"Distance",["5 miles", "10 miles","15 miles","25 miles"])
+            sectionInfo = (4,"Distance",["5 miles", "10 miles","15 miles","25 miles"])
         case 2:
-            sectionData = (3,"Sort By",["Best Match", "Distance", "Highest Rated"])
+            sectionInfo = (3,"Sort By",["Best Match", "Distance", "Highest Rated"])
         case 3:
-            sectionData = (categoryNames.count,"Category",categoryNames)
+            sectionInfo = (categoryNames.count,"Category",categoryNames)
         default:
             break
         }
-        return sectionData!
+        return sectionInfo!
     }
     
     public func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {

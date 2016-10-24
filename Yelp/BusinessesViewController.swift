@@ -38,17 +38,18 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         searchBar.delegate = self
         tableView.estimatedRowHeight = 120
         tableView.rowHeight = UITableViewAutomaticDimension
+        
         restaurantNames = [String]()
         filteredBusinesses = [Business]()
+        
         Business.searchWithTerm(term: "Restaurants", offset: 0, completion: { (businesses: [Business]?, error: Error?) -> Void in
-            
             self.businesses = businesses
             self.tableView.reloadData()
             if let businesses = businesses {
                 for business in businesses {
                     self.restaurantNames.append(business.name!)
-                    print("%%",business.name!)
-                    print("%%",business.address!)
+                    print(business.name!)
+                    print(business.address!)
                 }
                 self.businessesList = businesses
             }
@@ -65,7 +66,6 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
             let cell = tableView.dequeueReusableCell(withIdentifier: "BusinessCell", for: indexPath) as! BusinessCell
-            
             cell.business = businesses[indexPath.row]
             return cell
         }
@@ -85,7 +85,6 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     }
     
     func loadMoreData(offset:Int) {
-         print("OFFSET-------->", offset, "RADIUS------->", radius, "categories----->", categories, "SORT BY--->", sortMode)
         Business.searchWithTerm(term: "Restaurants", offset: offset, radius: radius, sort: sortMode, categories: categories, deals: deal) { (businesses: [Business]?, error: Error?) in
             
             self.isMoreDataLoading = false
@@ -94,8 +93,8 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
             if let businesses = businesses {
                 for business in businesses {
                     self.restaurantNames.append(business.name!)
-                    print("%%", business.name!)
-                    print("%%",business.address!)
+                    print(business.name!)
+                    print(business.address!)
                 }
                  self.businessesList = businesses
             }
@@ -109,8 +108,6 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     
         // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-     // Get the new view controller using segue.destinationViewController.
-     // Pass the selected object to the new view controller.
         let navigationController = segue.destination as! UINavigationController
         let filterViewController = navigationController.topViewController as! FiltersViewController
         filterViewController.delegate = self
@@ -121,28 +118,21 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         for keyFilter in filters {
             if(keyFilter.key == "deals") {
                 if(filters["deals"]?.first! == "true") {
-                    //deal = true
-                    self.yelpModel.deals = true
                     deal = true
                 }
             }
             if(keyFilter.key == "categories") {
-                 self.yelpModel.categories = filters["categories"]!
                  categories = filters["categories"]!
             }
             if(keyFilter.key == "distance") {
-                 self.yelpModel.radius = Int((filters["distance"]?.first)!)!
                  radius = Int((filters["distance"]?.first)!)!
                 
             }
             if(keyFilter.key == "sort") {
-                print("-->",(filters["sort"]),"<--")
-                 self.yelpModel.sort = Int((filters["sort"]?.first)!)!
                  sortMode = Int((filters["sort"]?.first)!)!
             }
         }
         Business.searchWithTerm(term: "Restaurants", offset: 0, radius: radius, sort: sortMode, categories: categories, deals: deal) { (businesses: [Business]?, error: Error?) in
-            print("$$$$$$$$$$$$$$", businesses?.count)
             self.businesses = businesses
             self.tableView.reloadData()
         }
@@ -181,12 +171,10 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
             let range = tmp.range(of: searchText, options: NSString.CompareOptions.caseInsensitive)
             return range.location != NSNotFound
         })
-        print("@@@@@@@", filteredRestuarantTitles)
         
         for title in filteredRestuarantTitles {
             for business in businesses! {
                 if(title == business.name!) {
-                    print("TITLE----->", title, "BUSINESS NAME--->", business.name)
                     filteredBusinesses.append(business)
                 }
             }
@@ -201,9 +189,4 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         filteredBusinesses.removeAll()
         self.tableView.reloadData()
     }
-    
-    
-    
-    
-    
 }
